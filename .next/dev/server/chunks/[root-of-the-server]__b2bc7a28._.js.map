@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 76, "column": 0}, "map": {"version":3,"sources":["file:///C:/GMMF/gmmf_donut_nextjs/lib/supabaseClient.ts"],"sourcesContent":["import { createClient } from '@supabase/supabase-js';\r\n\r\nconst supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;\r\nconst supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;\r\n\r\nexport const supabase = createClient(supabaseUrl, supabaseAnonKey);\r\n"],"names":[],"mappings":";;;;AAAA;;AAEA,MAAM;AACN,MAAM;AAEC,MAAM,WAAW,IAAA,yMAAY,EAAC,aAAa","debugId":null}},
+    {"offset": {"line": 89, "column": 0}, "map": {"version":3,"sources":["file:///C:/GMMF/gmmf_donut_nextjs/app/api/env-test/route.ts"],"sourcesContent":["import { supabase } from \"@/lib/supabaseClient\";\r\n\r\nexport async function GET() {\r\n  try {\r\n    const { data, error } = await supabase.from(\"countries\").select(\"*\").limit(1);\r\n    if (error) throw error;\r\n\r\n    return Response.json({\r\n      connected: true,\r\n      sample: data,\r\n    });\r\n  } catch (e: any) {\r\n    return Response.json({\r\n      connected: false,\r\n      error: e.message,\r\n    });\r\n  }\r\n}\r\n"],"names":[],"mappings":";;;;AAAA;;AAEO,eAAe;IACpB,IAAI;QACF,MAAM,EAAE,IAAI,EAAE,KAAK,EAAE,GAAG,MAAM,mIAAQ,CAAC,IAAI,CAAC,aAAa,MAAM,CAAC,KAAK,KAAK,CAAC;QAC3E,IAAI,OAAO,MAAM;QAEjB,OAAO,SAAS,IAAI,CAAC;YACnB,WAAW;YACX,QAAQ;QACV;IACF,EAAE,OAAO,GAAQ;QACf,OAAO,SAAS,IAAI,CAAC;YACnB,WAAW;YACX,OAAO,EAAE,OAAO;QAClB;IACF;AACF","debugId":null}}]
+}

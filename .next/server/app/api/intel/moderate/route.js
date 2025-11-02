@@ -1,0 +1,10 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/intel/moderate/route.js")
+R.c("server/chunks/[root-of-the-server]__44680d94._.js")
+R.c("server/chunks/[root-of-the-server]__8f5ebbc3._.js")
+R.c("server/chunks/node_modules_ae5569c2._.js")
+R.c("server/chunks/[root-of-the-server]__1c200b89._.js")
+R.c("server/chunks/node_modules_42103433._.js")
+R.c("server/chunks/node_modules_next_0700e68e._.js")
+R.c("server/chunks/_next-internal_server_app_api_intel_moderate_route_actions_9ae06256.js")
+R.m(17801)
+module.exports=R.m(17801).exports

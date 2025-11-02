@@ -1,0 +1,6 @@
+[00:00:00.927] Server  LOG      ✓ Ready in 591ms
+[00:00:09.008] Server  LOG      ○ Compiling / ...
+[00:00:12.611] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:13.804] Browser WARN    Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.
+[00:00:13.804] Browser WARN    Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.
+[00:00:13.804] Browser WARN    Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.

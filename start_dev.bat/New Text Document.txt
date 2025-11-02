@@ -1,0 +1,4 @@
+@echo off
+cd /d C:\GMMF\gmmf_donut_nextjs
+npm run dev
+pause

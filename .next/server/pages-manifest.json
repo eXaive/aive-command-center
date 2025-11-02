@@ -1,0 +1,17 @@
+{
+  "/_app": "pages/_app.js",
+  "/_document": "pages/_document.js",
+  "/_error": "pages/_error.js",
+  "/api/brief": "pages/api/brief.js",
+  "/api/brief.topic": "pages/api/brief.topic.js",
+  "/api/calendar": "pages/api/calendar.js",
+  "/api/heat": "pages/api/heat.js",
+  "/api/img": "pages/api/img.js",
+  "/api/og": "pages/api/og.js",
+  "/api/predict": "pages/api/predict.js",
+  "/api/report": "pages/api/report.js",
+  "/api/series": "pages/api/series.js",
+  "/api/summarize": "pages/api/summarize.js",
+  "/api/topic/[slug]": "pages/api/topic/[slug].js",
+  "/api_backup/news_backup": "pages/api_backup/news_backup.js"
+}

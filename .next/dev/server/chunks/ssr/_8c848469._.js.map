@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/GMMF/gmmf_donut_nextjs/app/layout.tsx"],"sourcesContent":["import \"./globals.css\";\nexport const metadata = { title: \"GMMF Donut — Crowned X\", description: \"Organize Everything. Monitor Anything.\" };\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (<html lang=\"en\"><body>{children}</body></html>);\n}\n"],"names":[],"mappings":";;;;;;;;;AACO,MAAM,WAAW;IAAE,OAAO;IAA0B,aAAa;AAAyC;AAClG,SAAS,WAAW,EAAE,QAAQ,EAAiC;IAC5E,qBAAQ,8OAAC;QAAK,MAAK;kBAAK,cAAA,8OAAC;sBAAM;;;;;;;;;;;AACjC","debugId":null}},
+    {"offset": {"line": 37, "column": 0}, "map": {"version":3,"sources":["file:///C:/GMMF/gmmf_donut_nextjs/node_modules/next/src/server/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.ts"],"sourcesContent":["module.exports = (\n  require('../../module.compiled') as typeof import('../../module.compiled')\n).vendored['react-rsc']!.ReactJsxDevRuntime\n"],"names":["module","exports","require","vendored","ReactJsxDevRuntime"],"mappings":"AAAAA,OAAOC,OAAO,GACZC,QAAQ,4HACRC,QAAQ,CAAC,YAAY,CAAEC,kBAAkB","ignoreList":[0],"debugId":null}}]
+}
