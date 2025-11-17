@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 82, "column": 0}, "map": {"version":3,"sources":["file:///C:/GMMF/gmmf_donut_nextjs/app/api/predictions/route.ts"],"sourcesContent":["// app/api/predictions/route.ts\r\nimport { NextResponse } from \"next/server\";\r\nimport { createClient } from \"@supabase/supabase-js\";\r\n\r\nexport async function GET() {\r\n  const supabase = createClient(\r\n    process.env.NEXT_PUBLIC_SUPABASE_URL!,\r\n    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!\r\n  );\r\n\r\n  const { data, error } = await supabase.from(\"predictions\").select(\"*\").order(\"date\", { ascending: true });\r\n\r\n  if (error) {\r\n    console.error(\"❌ Supabase fetch error:\", error.message);\r\n    return NextResponse.json({ success: false, error: error.message });\r\n  }\r\n\r\n  return NextResponse.json({ success: true, data });\r\n}\r\n"],"names":[],"mappings":"AAAA,+BAA+B;;;;;AAC/B;AACA;;;AAEO,eAAe;IACpB,MAAM,WAAW,IAAA,yMAAY;IAK7B,MAAM,EAAE,IAAI,EAAE,KAAK,EAAE,GAAG,MAAM,SAAS,IAAI,CAAC,eAAe,MAAM,CAAC,KAAK,KAAK,CAAC,QAAQ;QAAE,WAAW;IAAK;IAEvG,IAAI,OAAO;QACT,QAAQ,KAAK,CAAC,2BAA2B,MAAM,OAAO;QACtD,OAAO,gJAAY,CAAC,IAAI,CAAC;YAAE,SAAS;YAAO,OAAO,MAAM,OAAO;QAAC;IAClE;IAEA,OAAO,gJAAY,CAAC,IAAI,CAAC;QAAE,SAAS;QAAM;IAAK;AACjD","debugId":null}}]
-}

@@ -1,0 +1,9 @@
+[project]
+id = "ajtvseavjssmprfqnwyoe"
+name = "AIVE_Relaunch"
+url = "https://ajtvseavjssmprfqnwyoe.supabase.co"
+
+[auth]
+service_role_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0dnNlYXZqc3NtcHJmcW53eW9lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MTUwNjcwMiwiZXhwIjoyMDc3MDgyNzAyfQ.9aJczjqn93BStuFT6oIrbqJ3GULkIba0O4JNXmiCJac
+"
+anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0dnNlYXZqc3NtcHJmcW53eW9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1MDY3MDIsImV4cCI6MjA3NzA4MjcwMn0.LxxZFeXNH8k2cHFyvBvAiszHn12ebOTKNFXCBzkgFjk"

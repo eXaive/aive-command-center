@@ -1,79 +1,108 @@
-'use client';
-import { useEffect, useRef } from 'react';
+"use client";
 
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+
+/**
+ * 🌌 StarField — Sharp dual-layer star background
+ * High-contrast sparkle effect, no blur haze.
+ */
 export default function StarField() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [starsFront, setStarsFront] = useState<{ x: number; y: number; size: number }[]>([]);
+  const [starsBack, setStarsBack] = useState<{ x: number; y: number; size: number }[]>([]);
+  const [alertColor, setAlertColor] = useState<string>("rgba(200,220,255,0.9)");
+  const [intensity, setIntensity] = useState(0.6);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    // 🎇 Create crisp star layers
+    const makeStars = (count: number, sizeRange: [number, number]) =>
+      Array.from({ length: count }, () => ({
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * (sizeRange[1] - sizeRange[0]) + sizeRange[0],
+      }));
 
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    setStarsBack(makeStars(180, [0.5, 1.1]));
+    setStarsFront(makeStars(90, [1.2, 2]));
+  }, []);
 
-    const numStars = Math.floor((width + height) / 8);
-    const stars: { x: number; y: number; z: number; r: number; twinkle: number }[] = [];
-
-    for (let i = 0; i < numStars; i++) {
-      stars.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        z: Math.random() * width,
-        r: Math.random() * 1.8 + 0.8,
-        twinkle: Math.random(),
-      });
-    }
-
-    const animate = () => {
-      ctx.fillStyle = 'rgba(0, 5, 25, 1)';
-      ctx.fillRect(0, 0, width, height);
-
-      for (let i = 0; i < stars.length; i++) {
-        const s = stars[i];
-        s.z -= 0.2;
-        if (s.z <= 0) s.z = width;
-        s.twinkle += 0.04;
-
-        const k = 128 / s.z;
-        const px = s.x * k + width / 2;
-        const py = s.y * k + height / 2;
-
-        if (px >= 0 && px <= width && py >= 0 && py <= height) {
-          const alpha = 0.7 + Math.sin(s.twinkle) * 0.3;
-          ctx.beginPath();
-          ctx.arc(px, py, s.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(0,255,255,${alpha})`; // cyan debug
-          ctx.fill();
-        }
+  // 🌠 Listen for A.I.V.E. global alert states
+  useEffect(() => {
+    const handleAlert = (e: any) => {
+      const state = e.detail?.state;
+      if (state === "overheated") {
+        setAlertColor("rgba(255,90,90,1)");
+        setIntensity(1.4);
+      } else if (state === "distress") {
+        setAlertColor("rgba(64,180,255,1)");
+        setIntensity(1.4);
+      } else {
+        setAlertColor("rgba(200,220,255,0.9)");
+        setIntensity(0.6);
       }
-
-      requestAnimationFrame(animate);
+      if (state !== "stable") {
+        setTimeout(() => {
+          setAlertColor("rgba(200,220,255,0.9)");
+          setIntensity(0.6);
+        }, 2500);
+      }
     };
-
-    animate();
-
-    const handleResize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
+    window.addEventListener("aive-global-alert", handleAlert);
+    return () => window.removeEventListener("aive-global-alert", handleAlert);
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed top-0 left-0 w-full h-full pointer-events-none"
-      style={{
-        zIndex: 0,
-        opacity: 0.8,
-      }}
-    />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* BACK LAYER — faint background dust */}
+      {starsBack.map((star, i) => (
+        <motion.div
+          key={`b-${i}`}
+          className="absolute rounded-full"
+          style={{
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            backgroundColor: "rgba(180,200,255,0.4)",
+            boxShadow: `0 0 ${2 * intensity}px rgba(180,200,255,0.4)`,
+          }}
+          animate={{
+            opacity: [0.2, 0.6, 0.3],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 3 + Math.random() * 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      {/* FRONT LAYER — bright sharp stars */}
+      {starsFront.map((star, i) => (
+        <motion.div
+          key={`f-${i}`}
+          className="absolute rounded-full"
+          style={{
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            backgroundColor: alertColor,
+            boxShadow: `0 0 ${1.5 * intensity}px ${alertColor}`,
+          }}
+          animate={{
+            opacity: [0.3, 1, 0.5],
+            scale: [1, 1.4, 1],
+          }}
+          transition={{
+            duration: 1.5 + Math.random() * 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: Math.random() * 1.2,
+          }}
+        />
+      ))}
+    </div>
   );
 }
-

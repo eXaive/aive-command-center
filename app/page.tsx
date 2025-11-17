@@ -1,131 +1,128 @@
-'use client';
-import { useState, useEffect } from 'react';
-import IntelFeed from '@/components/IntelFeed';
-import SubmitIntel from '@/components/SubmitIntel';
-import NeuralHalo from '@/components/NeuralHalo';
-import TrendPanel from '@/components/TrendPanel';
-import CategoryPanel from '@/components/CategoryPanel';
-import StarField from '@/components/StarField';
-import GlobeBackground from '@/components/GlobeBackground';
+"use client";
 
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+
+/* Lock Screen */
+import LockScreen from "@/components/LockScreen";
+
+/* Environment */
+import StarField from "@/components/StarField";
+import GlobeBackground from "@/components/GlobeBackground";
+import AiveCore from "@/components/AiveCore";
+
+/* Context */
+import { NeuralStateProvider } from "@/context/NeuralStateContext";
+import { HeartbeatProvider } from "@/context/HeartbeatContext";
+import { PredictionFilterProvider } from "@/context/PredictionFilterContext";
+
+/* Panels */
+import PredictionsFeed from "@/components/predictions/PredictionsFeed";
+import PredictiveTimeline from "@/components/PredictiveTimeline";
+import AgentMarketplace from "@/components/AgentMarketplace";
+import HeartbeatPanel from "@/components/HeartbeatPanel";
+import DiagnosticsPanel from "@/components/DiagnosticsPanel";
+import NeuralAwarenessOrb from "@/components/NeuralAwarenessOrb";
+import AwarenessBar from "@/components/AwarenessBar";
+
+/* Selectors */
+import CountrySelector from "@/components/CountrySelector";
+import CategorySelector from "@/components/CategorySelector";
+
+/* NEW — Right-Side Hologram Beam */
+import HologramAlert from "@/components/HologramAlert";
+
+
+/* -------------------------------------------------------------
+   COMMAND CENTER INNER — Main UI (Blurred until unlock)
+--------------------------------------------------------------*/
+function CommandCenterInner() {
+  return (
+    <motion.main
+      className="min-h-screen bg-slate-950 text-white flex flex-col items-center px-4 pt-4 relative overflow-x-hidden"
+    >
+      {/* Background */}
+      <div className="absolute inset-0 -z-10">
+        <StarField />
+        <GlobeBackground />
+        <AiveCore />
+      </div>
+
+      {/* Marketplace */}
+      <AgentMarketplace />
+
+      {/* Title */}
+      <h1 className="text-2xl font-bold text-blue-400 text-center mt-2">
+        🧠 A.I.V.E. Financial Command Center
+      </h1>
+      <p className="text-gray-400 text-xs text-center mb-4">
+        Awareness • Intelligence • Verification • Evolution
+      </p>
+
+      {/* Awareness Panel */}
+      <div className="flex flex-col items-center w-full max-w-md mb-6">
+        <CountrySelector />
+        <AwarenessBar />
+        <div className="mt-3 mb-3">
+          <NeuralAwarenessOrb />
+        </div>
+        <CategorySelector />
+      </div>
+
+      {/* Feeds */}
+      <div className="w-full max-w-5xl flex flex-col items-center space-y-8 mt-4">
+        <PredictionsFeed />
+        <div className="w-full max-w-2xl">
+          <PredictiveTimeline asset="GOLD" />
+        </div>
+      </div>
+
+      {/* Panels */}
+      <HeartbeatPanel />
+      <DiagnosticsPanel />
+
+      <footer className="mt-8 text-[10px] text-gray-600 text-center">
+        © {new Date().getFullYear()} eX Intelligence Systems • Powered by A.I.V.E.
+      </footer>
+    </motion.main>
+  );
+}
+
+
+/* -------------------------------------------------------------
+   PAGE WRAPPER — Lock Screen + Command Center + Hologram Beam
+--------------------------------------------------------------*/
 export default function Home() {
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'feed' | 'trends' | 'regions'>('feed');
+  const [unlocked, setUnlocked] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+  useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white flex flex-col items-center p-6 relative overflow-hidden">
-      
-      {/* === Space + Globe + Neural Core === */}
-      <div className="absolute inset-0 -z-10">
-        <StarField />
-        <GlobeBackground activeCountry="Global" />
-      </div>
+    <NeuralStateProvider>
+      <HeartbeatProvider>
+        <PredictionFilterProvider>
+          <main className="relative min-h-screen bg-slate-950 text-white overflow-hidden">
 
-      {/* ===== Header Section ===== */}
-      <div className="text-center mb-2 z-10">
-        <h1 className="text-3xl font-bold text-blue-400 drop-shadow-md">
-          🧠 A.I.V.E. Command Center
-        </h1>
-        <p className="text-gray-400 text-sm mt-1">
-          Awareness • Intelligence • Verification • Evolution
-        </p>
-      </div>
+            {/* Always running environment */}
+            <StarField />
+            <GlobeBackground />
+            <AiveCore />
 
-      {/* ===== Neural Halo Visualization ===== */}
-      <NeuralHalo status="listening" />
+            {/* Right-Side Floating Hologram Beam */}
+            <HologramAlert />
 
-      {/* ===== Collapsible Intelligence Panel ===== */}
-      <CategoryPanel selectedCategory={activeTab === 'feed' ? 'Countries' : activeTab} />
-
-      {/* ===== Tab Switcher ===== */}
-      <div className="flex gap-4 mt-4 mb-6 z-10">
-        {['feed', 'trends', 'regions'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as 'feed' | 'trends' | 'regions')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-              activeTab === tab
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-700/30'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {/* ===== Dynamic Panels ===== */}
-      <div className="w-full max-w-3xl flex flex-col items-center z-10">
-        {activeTab === 'feed' && (
-          <>
-            <SubmitIntel />
-            <IntelFeed />
-            <TrendPanel />
-          </>
-        )}
-
-        {activeTab === 'trends' && (
-          <div className="p-6 bg-slate-900 rounded-xl text-center w-full max-w-md shadow-lg">
-            <h2 className="text-lg font-semibold mb-2">📈 Trend Awareness</h2>
-            <p className="text-sm text-slate-400 mb-3">
-              A.I.V.E. aggregates average sentiment and impact scores by region.
-              <br />
-              (Phase 3-B will visualize this with live analytics.)
-            </p>
-
-            <div className="grid grid-cols-3 gap-3 text-xs text-gray-300">
-              <div className="p-3 bg-slate-800 rounded-lg">
-                <p className="font-semibold text-blue-400">USA</p>
-                <p>Pos: 67 % • Impact 78</p>
-              </div>
-              <div className="p-3 bg-slate-800 rounded-lg">
-                <p className="font-semibold text-green-400">India</p>
-                <p>Neu: 45 % • Impact 74</p>
-              </div>
-              <div className="p-3 bg-slate-800 rounded-lg">
-                <p className="font-semibold text-amber-400">Canada</p>
-                <p>Pos: 72 % • Impact 82</p>
-              </div>
+            {/* Command Center (Blurred until login) */}
+            <div className={unlocked ? "" : "blur-xl opacity-40 pointer-events-none"}>
+              <CommandCenterInner />
             </div>
-          </div>
-        )}
 
-        {activeTab === 'regions' && (
-          <div className="p-6 bg-slate-900 rounded-xl text-center w-full max-w-md shadow-lg">
-            <h2 className="text-lg font-semibold mb-2">🌍 Regional Intelligence</h2>
-            <p className="text-sm text-slate-400 mb-3">
-              Each region’s feed and sentiment clusters will appear here.
-              Future builds will support collapsible inline panels.
-            </p>
-
-            <div className="flex flex-col gap-2 text-xs">
-              <div className="p-3 bg-slate-800 rounded-lg">
-                <p className="font-semibold text-blue-400">North America</p>
-                <p>8 entries • Avg impact 79</p>
-              </div>
-              <div className="p-3 bg-slate-800 rounded-lg">
-                <p className="font-semibold text-green-400">Asia</p>
-                <p>12 entries • Avg impact 82</p>
-              </div>
-              <div className="p-3 bg-slate-800 rounded-lg">
-                <p className="font-semibold text-amber-400">Europe</p>
-                <p>6 entries • Avg impact 73</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ===== Footer Tagline ===== */}
-      <footer className="mt-8 text-xs text-gray-600 text-center z-10">
-        © {new Date().getFullYear()} eX Intelligence Systems • Powered by A.I.V.E.
-      </footer>
-    </main>
+            {/* Lock Screen */}
+            {!unlocked && <LockScreen onUnlock={() => setUnlocked(true)} />}
+          </main>
+        </PredictionFilterProvider>
+      </HeartbeatProvider>
+    </NeuralStateProvider>
   );
 }

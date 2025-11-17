@@ -1,230 +1,312 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
 
+// === Supabase Setup ===
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export default function SubmitIntel() {
+// === Grouped Country List ===
+const COUNTRY_GROUPS = {
+  Americas: [
+    "United States", "Canada", "Mexico", "Brazil", "Argentina",
+    "Chile", "Colombia", "Peru", "Venezuela"
+  ],
+  Caribbean: [
+    "Jamaica", "Barbados", "Trinidad & Tobago", "The Bahamas",
+    "Haiti", "Dominican Republic", "Puerto Rico", "Cuba"
+  ],
+  Europe: [
+    "United Kingdom", "Germany", "France", "Italy", "Spain", "Netherlands",
+    "Switzerland", "Sweden", "Norway", "Poland", "Greece", "Ireland", "Portugal"
+  ],
+  "Middle East & Africa": [
+    "Saudi Arabia", "United Arab Emirates", "Israel", "Nigeria", "South Africa",
+    "Kenya", "Egypt", "Morocco"
+  ],
+  Asia: [
+    "China", "Japan", "South Korea", "India", "Pakistan", "Bangladesh",
+    "Indonesia", "Vietnam", "Thailand", "Philippines", "Malaysia",
+    "Singapore", "Taiwan", "Hong Kong"
+  ],
+  Oceania: ["Australia", "New Zealand"]
+};
+
+export default function SubmitIntel({ selectedAgent }: { selectedAgent?: string | null }) {
   const [headline, setHeadline] = useState('');
   const [summary, setSummary] = useState('');
-  const [region, setRegion] = useState('');
+  const [country, setCountry] = useState('');
   const [sentiment, setSentiment] = useState('Neutral');
   const [impact, setImpact] = useState(50);
-  const [category, setCategory] = useState('Countries');
+  const [category, setCategory] = useState('General');
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+  const [glowState, setGlowState] = useState<'thinking' | 'submitted' | 'error'>('thinking');
+  const [confidence, setConfidence] = useState(0);
+  const [highlighted, setHighlighted] = useState(false);
 
-  // 🎯 Fields for Financial Quiz Show
-  const [quizAnswers, setQuizAnswers] = useState<string[]>(['', '', '', '']);
-  const [correctAnswer, setCorrectAnswer] = useState('');
-
-  // 🐝 Fields for Financial Spelling Bee
-  const [definition, setDefinition] = useState('');
-  const [exampleUsage, setExampleUsage] = useState('');
+  const audioSubmit = useRef<HTMLAudioElement>(null);
+  const audioError = useRef<HTMLAudioElement>(null);
+  const audioAmbient = useRef<HTMLAudioElement>(null);
+  const audioSelect = useRef<HTMLAudioElement>(null);
 
   const categories = [
-    'Countries',
-    'Finance',
-    'Military Action',
-    'Outbreaks',
-    'Global Intel Agencies',
-    'The Financial Quiz Show',
-    'The Financial Spelling Bee',
+    'General', 'Finance', 'Military Action', 'Outbreaks', 'Global Intel Agencies',
+    'The Financial Quiz Show', 'The Financial Spelling Bee', 'Security',
+    'Geopolitics', 'Energy', 'Health', 'Technology', 'Environment', 'Intelligence'
   ];
 
-  const handleQuizAnswerChange = (index: number, value: string) => {
-    const updated = [...quizAnswers];
-    updated[index] = value;
-    setQuizAnswers(updated);
-  };
+  /* ============================================================
+     Confidence Auto-Score
+  ============================================================ */
+  useEffect(() => {
+    let score = 0;
+    if (headline.length > 3) score += 30;
+    if (summary.length > 5) score += 30;
+    if (country.length > 1) score += 20;
+    if (impact > 10) score += 10;
+    if (category) score += 10;
+    setConfidence(score);
+  }, [headline, summary, country, impact, category]);
 
+  /* ============================================================
+     Ambient Hum
+  ============================================================ */
+  useEffect(() => {
+    const ambient = audioAmbient.current;
+    if (ambient) {
+      ambient.volume = 0.028;
+      ambient.loop = true;
+      ambient.play().catch(() => {});
+    }
+  }, []);
+
+  /* ============================================================
+     Agent auto-select category
+  ============================================================ */
+  useEffect(() => {
+    if (!selectedAgent) return;
+    const label = selectedAgent.charAt(0).toUpperCase() + selectedAgent.slice(1);
+
+    setCategory(label);
+    setHighlighted(true);
+
+    const ping = audioSelect.current;
+    if (ping) {
+      ping.volume = 0.25;
+      ping.play().catch(() => {});
+    }
+
+    const timeout = setTimeout(() => setHighlighted(false), 1500);
+    return () => clearTimeout(timeout);
+  }, [selectedAgent]);
+
+  /* ============================================================
+     Submit Handler
+  ============================================================ */
   async function handleSubmit(e: any) {
     e.preventDefault();
     setSubmitting(true);
     setMessage('');
 
-    let insertData: any = {
+    const insertData = {
       headline,
       summary,
-      region,
-      sentiment_level: sentiment,
+      country,
+      sentiment,
       impact_score: impact,
       category,
+      confidence,
       content_type: 'intel',
     };
 
-    if (category === 'The Financial Quiz Show') {
-      insertData.quiz_answers = quizAnswers.filter((a) => a.trim() !== '');
-      insertData.correct_answer = correctAnswer;
-      insertData.content_type = 'quiz';
-    }
-
-    if (category === 'The Financial Spelling Bee') {
-      insertData.definition = definition;
-      insertData.example_usage = exampleUsage;
-      insertData.content_type = 'spelling';
-    }
-
-    const { error } = await supabase.from('intel_feed').insert([insertData]);
+    const { error } = await supabase.from('intel_entries').insert([insertData]);
     setSubmitting(false);
 
     if (error) {
       console.error('Error submitting intel:', error);
+      setGlowState('error');
+      audioError.current?.play();
       setMessage('❌ Submission failed.');
+      setTimeout(() => setGlowState('thinking'), 2500);
     } else {
-      setMessage('✅ Intel submitted successfully.');
+      setGlowState('submitted');
+      audioSubmit.current?.play();
+      setMessage('✅ Intel submitted successfully!');
       setHeadline('');
       setSummary('');
-      setRegion('');
+      setCountry('');
       setSentiment('Neutral');
       setImpact(50);
-      setQuizAnswers(['', '', '', '']);
-      setCorrectAnswer('');
-      setDefinition('');
-      setExampleUsage('');
+      setCategory('General');
+      setConfidence(0);
+      setTimeout(() => setGlowState('thinking'), 2500);
     }
   }
 
+  /* ============================================================
+     Glow State
+  ============================================================ */
+  const glowColor =
+    glowState === 'submitted'
+      ? 'from-yellow-400 via-amber-300 to-yellow-500'
+      : glowState === 'error'
+      ? 'from-red-500 via-rose-400 to-red-600'
+      : 'from-blue-500 via-sky-400 to-blue-500';
+
+  /* ============================================================
+     RENDER
+  ============================================================ */
   return (
-    <div className="bg-slate-900/70 rounded-xl p-5 border border-slate-800 shadow-md w-full max-w-md mb-6">
-      <h2 className="text-sky-400 font-semibold flex items-center gap-2 mb-3">
+    <div className="bg-slate-900/70 rounded-xl p-5 border border-slate-800 shadow-md w-full max-w-md mb-6 relative overflow-hidden">
+
+      {/* Sounds */}
+      <audio ref={audioSubmit} src="/sounds/submit-chime.mp3" preload="auto" />
+      <audio ref={audioError} src="/sounds/error-tone.mp3" preload="auto" />
+      <audio ref={audioAmbient} src="/sounds/ambient-hum.mp3" preload="auto" />
+      <audio ref={audioSelect} src="/sounds/agent-select.wav" preload="auto" />
+
+      {/* Neural Glow Banner */}
+      <motion.div
+        animate={{ opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 2, repeat: Infinity }}
+        className={`absolute top-0 left-0 w-full text-center py-1 text-[11px] font-semibold text-sky-100 backdrop-blur-md bg-gradient-to-r ${glowColor}`}
+      >
+        ⚙️ A.I.V.E. Neural Categorizer —{' '}
+        {glowState === 'submitted'
+          ? 'Upload Confirmed'
+          : glowState === 'error'
+          ? 'Transmission Error'
+          : 'Active'}
+      </motion.div>
+
+      <h2 className="text-sky-400 font-semibold flex items-center gap-2 mb-2 mt-4">
         🧠 Submit Intel
       </h2>
 
-      {/* 🔹 Category Selector */}
-      <div className="mb-3">
-        <label className="block text-xs text-slate-400 mb-1">Category</label>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="w-full bg-slate-800 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
-        >
-          {categories.map((cat) => (
-            <option key={cat}>{cat}</option>
-          ))}
-        </select>
+      {/* Confidence Meter */}
+      <div className="w-full bg-slate-800 rounded-full h-2 mb-3 overflow-hidden">
+        <motion.div
+          className="h-2 bg-gradient-to-r from-blue-400 to-emerald-400"
+          animate={{ width: `${confidence}%` }}
+          transition={{ duration: 0.6 }}
+        />
       </div>
+      <p className="text-[10px] text-slate-400 mb-3">
+        Intel Confidence: {confidence.toFixed(0)}%
+      </p>
 
+      {/* FORM */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+
         {/* Headline */}
         <input
           type="text"
-          placeholder={
-            category === 'The Financial Quiz Show'
-              ? 'Enter Quiz Question'
-              : category === 'The Financial Spelling Bee'
-              ? 'Enter Word'
-              : 'Headline / Event'
-          }
+          placeholder="Headline / Event"
           value={headline}
           onChange={(e) => setHeadline(e.target.value)}
           className="bg-slate-800 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
           required
         />
 
-        {/* Summary or Definition Field */}
-        {category === 'The Financial Spelling Bee' ? (
-          <>
-            <textarea
-              placeholder="Definition"
-              value={definition}
-              onChange={(e) => setDefinition(e.target.value)}
-              rows={2}
-              className="bg-slate-800 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
-              required
-            />
-            <textarea
-              placeholder="Example Usage"
-              value={exampleUsage}
-              onChange={(e) => setExampleUsage(e.target.value)}
-              rows={2}
-              className="bg-slate-800 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
-            />
-          </>
-        ) : (
-          <textarea
-            placeholder={
-              category === 'The Financial Quiz Show'
-                ? 'Hint or brief context for the question'
-                : 'Summary / Description'
-            }
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            rows={2}
-            className="bg-slate-800 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
-          />
-        )}
+        {/* Summary */}
+        <textarea
+          placeholder="Summary / Description"
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          rows={2}
+          className="bg-slate-800 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
+        />
 
-        {/* Quiz Answers Section */}
-        {category === 'The Financial Quiz Show' && (
-          <div className="bg-slate-800/60 p-3 rounded-md border border-slate-700">
-            <p className="text-xs text-slate-400 mb-2">
-              💡 Enter up to 4 answer choices and mark the correct one
-            </p>
-            {quizAnswers.map((ans, i) => (
-              <div key={i} className="flex items-center gap-2 mb-2">
-                <input
-                  type="text"
-                  placeholder={`Answer ${i + 1}`}
-                  value={ans}
-                  onChange={(e) => handleQuizAnswerChange(i, e.target.value)}
-                  className="flex-1 bg-slate-900 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
-                />
-                <input
-                  type="radio"
-                  name="correct"
-                  checked={correctAnswer === ans}
-                  onChange={() => setCorrectAnswer(ans)}
-                />
-              </div>
+        {/* COUNTRY DROPDOWN */}
+        <label className="text-xs text-slate-400">Country</label>
+        <select
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          className="bg-slate-800 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
+        >
+          <option value="">Select Country</option>
+
+          {Object.entries(COUNTRY_GROUPS).map(([group, list]) => (
+            <optgroup key={group} label={group}>
+              {list.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+
+        {/* Category */}
+        <label className="text-xs text-slate-400">Category</label>
+        <motion.div
+          animate={{
+            boxShadow: highlighted
+              ? '0 0 15px rgba(56,189,248,0.6)'
+              : '0 0 0 rgba(0,0,0,0)',
+            scale: highlighted ? 1.03 : 1,
+          }}
+          transition={{ duration: 0.3 }}
+        >
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="bg-slate-800 rounded-md px-3 py-2 text-sm text-white w-full focus:ring-1 focus:ring-blue-500"
+          >
+            {categories.map((cat) => (
+              <option key={cat}>{cat}</option>
             ))}
-          </div>
-        )}
+          </select>
+        </motion.div>
 
-        {/* Region, Sentiment, Impact */}
-        {category !== 'The Financial Quiz Show' && category !== 'The Financial Spelling Bee' && (
-          <>
-            <input
-              type="text"
-              placeholder="Region"
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-              className="bg-slate-800 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
-            />
+        {/* Sentiment */}
+        <select
+          value={sentiment}
+          onChange={(e) => setSentiment(e.target.value)}
+          className="bg-slate-800 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
+        >
+          <option>Positive</option>
+          <option>Neutral</option>
+          <option>Negative</option>
+        </select>
 
-            <select
-              value={sentiment}
-              onChange={(e) => setSentiment(e.target.value)}
-              className="bg-slate-800 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
-            >
-              <option>Positive</option>
-              <option>Neutral</option>
-              <option>Negative</option>
-            </select>
+        {/* Impact */}
+        <input
+          type="number"
+          placeholder="Impact Score"
+          value={impact}
+          onChange={(e) => setImpact(parseInt(e.target.value))}
+          className="bg-slate-800 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
+        />
 
-            <input
-              type="number"
-              placeholder="Impact Score"
-              value={impact}
-              onChange={(e) => setImpact(parseInt(e.target.value))}
-              className="bg-slate-800 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
-            />
-          </>
-        )}
-
-        <button
+        {/* SUBMIT BUTTON */}
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          whileHover={{ scale: 1.02 }}
           type="submit"
           disabled={submitting}
           className="bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 font-medium disabled:opacity-50"
         >
-          {submitting ? 'Submitting...' : 'Submit to A.I.V.E.'}
-        </button>
+          {submitting ? 'Transmitting...' : 'Submit to A.I.V.E.'}
+        </motion.button>
 
-        {message && <p className="text-xs text-center text-slate-400 mt-2">{message}</p>}
+        {message && (
+          <p className="text-xs text-center text-slate-400 mt-2">{message}</p>
+        )}
       </form>
+
+      {/* Ripple overlay */}
+      {glowState === 'submitted' && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: [0.5, 0, 0], scale: [1, 1.4, 1.6] }}
+          transition={{ duration: 1.2 }}
+          className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 to-amber-200/10 rounded-xl pointer-events-none"
+        />
+      )}
     </div>
   );
 }
-

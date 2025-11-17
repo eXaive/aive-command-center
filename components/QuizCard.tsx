@@ -2,85 +2,59 @@
 
 import React, { useMemo, useState } from "react";
 
-type Q = {
-  id: string;
-  question: string;
-  choices: string[];
-  correct: number;      // index in choices
-  explanation: string;
-};
-
-function goldQuestions(): Q[] {
-  return [
-    {
-      id: "gold-why-dxy",
-      question: "Why does a stronger U.S. Dollar (DXY) often pressure GOLD prices?",
+export default function QuizCard({
+  cause,
+  effect,
+}: {
+  cause: string;
+  effect: string;
+}) {
+  /* ------------------------------------------------------------
+     1. Build dynamic question based on prediction
+  ------------------------------------------------------------ */
+  const dynamicQuestion = useMemo(() => {
+    return {
+      id: "dynamic-cause-effect",
+      question: `What was the primary cause of the following outcome: "${effect}"?`,
       choices: [
-        "Because gold supply increases when DXY rises",
-        "Because gold is mostly priced in USD, making it more expensive for non-USD buyers",
-        "Because central banks sell gold when DXY rises by mandate",
-        "Because COMEX halts gold trading when DXY rises quickly",
+        cause, // correct answer
+        "A different unrelated economic policy",
+        "Market rumors without supporting data",
+        "A geopolitical event not linked to this case",
       ],
-      correct: 1,
-      explanation:
-        "Gold is globally priced in USD. When the dollar strengthens, gold becomes more expensive in other currencies, often reducing demand.",
-    },
-    {
-      id: "gold-inflation-hedge",
-      question: "In which environment does GOLD historically see tailwinds?",
-      choices: [
-        "Stable inflation, rising real yields",
-        "Disinflation with strong risk appetite",
-        "Rising inflation expectations and falling real yields",
-        "Only when oil falls sharply",
-      ],
-      correct: 2,
-      explanation:
-        "Gold tends to do better when inflation expectations rise and real yields fall (opportunity cost of holding gold declines).",
-    },
-  ];
-}
+      correct: 0,
+      explanation: `The event "${effect}" is primarily driven by: ${cause}.`,
+    };
+  }, [cause, effect]);
 
-const BANK: Record<string, () => Q[]> = {
-  GOLD: goldQuestions,
-  // Add others later:
-  // SPY: () => [...],
-  // BTC: () => [...],
-  // ETH: () => [...],
-};
+  const q = dynamicQuestion;
 
-export default function QuizCard({ asset = "GOLD" }: { asset?: string }) {
-  const questions = useMemo(() => {
-    const fn = BANK[asset] || BANK["GOLD"];
-    return fn();
-  }, [asset]);
-
-  const [idx, setIdx] = useState(0);
+  /* ------------------------------------------------------------
+     2. State logic (unchanged)
+  ------------------------------------------------------------ */
   const [picked, setPicked] = useState<number | null>(null);
   const [showExp, setShowExp] = useState(false);
-
-  const q = questions[idx];
 
   const pick = (i: number) => {
     setPicked(i);
     setShowExp(true);
   };
 
-  const next = () => {
-    setIdx((i) => (i + 1) % questions.length);
+  const reset = () => {
     setPicked(null);
     setShowExp(false);
   };
 
   return (
-    <div className="rounded-xl border bg-white p-4">
-      <div className="text-xs text-slate-500">Quick Quiz</div>
+    <div className="rounded-xl border bg-white/5 backdrop-blur-md p-4 text-white">
+      <div className="text-xs text-slate-400">Quick Quiz</div>
       <h4 className="font-semibold mt-1">{q.question}</h4>
 
       <div className="mt-3 grid gap-2">
         {q.choices.map((c, i) => {
           const isCorrect = picked !== null && i === q.correct;
           const isWrong = picked !== null && i === picked && i !== q.correct;
+
           return (
             <button
               key={i}
@@ -88,12 +62,12 @@ export default function QuizCard({ asset = "GOLD" }: { asset?: string }) {
               className={
                 "text-left px-3 py-2 rounded-md border transition " +
                 (picked === null
-                  ? "bg-white hover:bg-slate-50"
+                  ? "bg-white/10 hover:bg-white/20"
                   : isCorrect
-                  ? "bg-green-50 border-green-300"
+                  ? "bg-green-700/40 border-green-400"
                   : isWrong
-                  ? "bg-red-50 border-red-300"
-                  : "bg-white")
+                  ? "bg-red-700/40 border-red-400"
+                  : "bg-white/10")
               }
               disabled={picked !== null}
             >
@@ -104,16 +78,18 @@ export default function QuizCard({ asset = "GOLD" }: { asset?: string }) {
       </div>
 
       {showExp && (
-        <div className="mt-3 text-sm">
+        <div className="mt-4 text-sm text-slate-300">
           <div className="font-medium">
-            {picked === q.correct ? "✅ Correct" : "❌ Not quite"}
+            {picked === q.correct ? "✅ Correct" : "❌ Not correct"}
           </div>
-          <p className="text-slate-600 mt-1">{q.explanation}</p>
+
+          <p className="mt-2">{q.explanation}</p>
+
           <button
-            onClick={next}
-            className="mt-3 px-3 py-2 rounded-md border bg-white hover:bg-slate-50"
+            onClick={reset}
+            className="mt-3 px-3 py-2 rounded-md border bg-white/10 hover:bg-white/20"
           >
-            Next Question
+            Try Again
           </button>
         </div>
       )}

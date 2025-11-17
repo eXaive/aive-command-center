@@ -1,0 +1,46 @@
+// components/hive/useSleepTimer.ts
+"use client";
+
+import { useEffect, useRef } from "react";
+
+/**
+ * ⏳ useSleepTimer
+ * Dispatches "aive-rest" and "aive-awake" events automatically.
+ * Optional: set `autoStart` to false if you want to trigger manually.
+ */
+export default function useSleepTimer(autoStart: boolean = true) {
+  const lastInteraction = useRef(Date.now());
+  const restTriggered = useRef(false);
+
+  useEffect(() => {
+    if (!autoStart) return;
+
+    const REST_DELAY = 20000; // 20 seconds
+    const interval = setInterval(() => {
+      const diff = Date.now() - lastInteraction.current;
+      if (diff > REST_DELAY && !restTriggered.current) {
+        window.dispatchEvent(new Event("aive-rest"));
+        restTriggered.current = true;
+        console.log("🌙 Sent aive-rest event");
+      }
+    }, 1000);
+
+    const handleWake = () => {
+      lastInteraction.current = Date.now();
+      if (restTriggered.current) {
+        window.dispatchEvent(new Event("aive-awake"));
+        restTriggered.current = false;
+        console.log("☀️ Sent aive-awake event");
+      }
+    };
+
+    window.addEventListener("pointerdown", handleWake);
+    window.addEventListener("keydown", handleWake);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("pointerdown", handleWake);
+      window.removeEventListener("keydown", handleWake);
+    };
+  }, [autoStart]);
+}

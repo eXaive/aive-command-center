@@ -7,7 +7,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export default function CategoryPanel({ selectedCategory }: { selectedCategory: string }) {
+export default function CategoryPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     region: '',
@@ -30,7 +30,7 @@ export default function CategoryPanel({ selectedCategory }: { selectedCategory: 
     const { error } = await supabase.from('intel_feed').insert([
       {
         ...formData,
-        category: selectedCategory.toLowerCase(),
+        category: 'finance',
         impact_score: Math.floor(Math.random() * 100),
         confidence_score: Math.floor(Math.random() * 100),
       },
@@ -42,7 +42,7 @@ export default function CategoryPanel({ selectedCategory }: { selectedCategory: 
       console.error('Error inserting intel:', error);
       setMessage('❌ Submission failed.');
     } else {
-      setMessage('✅ Intel submitted successfully.');
+      setMessage('✅ Finance intel submitted successfully.');
       setFormData({
         region: '',
         headline: '',
@@ -52,18 +52,8 @@ export default function CategoryPanel({ selectedCategory }: { selectedCategory: 
     }
   };
 
-  const categoryTips: Record<string, string> = {
-    Countries: 'Track regional political, social, and economic developments.',
-    Finance: 'Monitor financial markets, currencies, and macroeconomic data.',
-    'Military Action': 'Record conflicts, deployments, or strategic movements.',
-    Outbreaks: 'Log health events, disease spread, and containment efforts.',
-    'Global Intel Agencies': 'Report covert or intelligence-related activities.',
-    All: 'All-source awareness — covering every field.',
-  };
-
   return (
     <>
-      {/* Toggle Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed bottom-6 left-6 px-4 py-2 text-sm rounded-md z-50 transition-all shadow-md ${
@@ -72,10 +62,9 @@ export default function CategoryPanel({ selectedCategory }: { selectedCategory: 
             : 'bg-blue-600 hover:bg-blue-700'
         }`}
       >
-        {isOpen ? 'Close Panel' : 'Open Info Panel'}
+        {isOpen ? 'Close Finance Panel' : 'Finance Intel'}
       </motion.button>
 
-      {/* Collapsible Panel */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -86,9 +75,11 @@ export default function CategoryPanel({ selectedCategory }: { selectedCategory: 
             className="fixed bottom-0 left-0 w-80 h-[80vh] bg-slate-900 border-r border-slate-700 p-4 shadow-2xl rounded-tr-2xl overflow-y-auto z-40"
           >
             <h2 className="text-blue-400 text-lg font-semibold mb-2">
-              {selectedCategory} Intelligence
+              Finance Intelligence
             </h2>
-            <p className="text-xs text-slate-400 mb-4">{categoryTips[selectedCategory]}</p>
+            <p className="text-xs text-slate-400 mb-4">
+              Submit key market insights, events, or signals relevant to finance.
+            </p>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
               <input

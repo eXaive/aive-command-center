@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "aive-cas-transformer": {
+      "verify_jwt": false
+    }
+  }
+}

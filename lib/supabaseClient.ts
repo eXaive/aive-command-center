@@ -1,11 +1,24 @@
-import { createClient } from '@supabase/supabase-js'
+// lib/supabaseClient.ts
+import { createClient } from "@supabase/supabase-js";
 
-// ✅ Supabase environment variables with safe fallbacks
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://jtvseavjssmprfqnwyoe.supabase.co";
+/**
+ * 🔐 Universal Supabase Client
+ * Used for both client-side and server-side rendering.
+ * - Reads public (anon) env vars automatically from .env.local
+ * - Enables real-time subscriptions for assets, intel, and predictions
+ * - Disables persistent session storage to keep memory clean
+ */
 
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0dnNlYXZqc3NtcHJmcW53eW9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1MDY3MDIsImV4cCI6MjA3NzA4MjcwMn0.LxxZFeXNH8k2cHFyvBvAiszHn12ebOTKNFXCBzkgFjk";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// ✅ Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// 🧠 Shared Supabase client (read + realtime)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: { persistSession: false },
+  realtime: { params: { eventsPerSecond: 5 } }, // keeps neural feeds smooth
+});
+
+// Optional utility for debugging current connection
+export const logSupabaseStatus = () => {
+  console.log("🔗 Supabase Connected →", supabaseUrl);
+};
